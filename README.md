@@ -1,75 +1,101 @@
-# ZenithProxy Example Plugin
+# ZenithProxyWitherKiller
 
-[ZenithProxy](https://github.com/rfresh2/ZenithProxy) is a Minecraft proxy and bot.
+A [ZenithProxy](https://github.com/rfresh2/ZenithProxy) plugin that automatically summons and kills withers.
 
-This repository is an example core plugin for ZenithProxy, allowing you to add custom modules and commands.
+The bot continuously places soul sand toward a fixed target coordinate, waits for withers to spawn, then engages KillAura to eliminate them. The cycle repeats automatically.
 
-## Installing Plugins
+## Features
 
-Plugins are only supported on the `java` ZenithProxy release channel (i.e. not `linux`).
+- **Auto Placement** - Places soul sand blocks toward a configurable target position
+- **Auto Kill** - Enables KillAura targeting only withers when spawn threshold is reached
+- **Cleanup** - Automatically removes obstructing blocks (pistons, redstone, etc.) in front of the bot
+- **Configurable** - Detection range, spawn wait time, fight timeout, and protected blocks are all configurable
+- **KillAura Snapshot** - Saves and restores your KillAura settings when the module is disabled
+- **Protected Blocks** - Redstone components, dispensers, droppers, and other machines are protected from cleanup by default
 
-Place plugin jars in the `plugins` folder inside the same folder as the ZenithProxy launcher.
+## Requirements
 
-Restart ZenithProxy to load plugins. Loading plugins after launch or hot reloading is not supported.
+- [ZenithProxy](https://github.com/rfresh2/ZenithProxy) for Minecraft 1.21.4
+- Java 21+
 
-## Creating Plugins
+## Installation
 
-Use this repository as a template to create your own plugin repository.
+1. Download the latest `ZenithProxyWitherKiller-1.0.0.jar` from [Releases](https://github.com/AeiouJx/ZenithProxyWitherKiller/releases)
+2. Place the jar file in your ZenithProxy `plugins/` directory
+3. Restart ZenithProxy
 
-### Plugin Structure
+## Commands
 
-Each plugin needs a main class that implements `ZenithProxyPlugin` and is annotated with `@Plugin`.
+| Command | Description |
+|---------|-------------|
+| `witherKiller on/off` | Enable or disable the wither killer module |
+| `witherKiller captureTarget` | Capture the block your crosshair is looking at as the placement target |
+| `witherKiller target <x> <y> <z>` | Set the placement target coordinates manually |
+| `witherKiller range <blocks>` | Set the wither detection range (default: 24) |
+| `witherKiller requiredWithers <count>` | Set how many withers must be present before starting the fight (default: 6) |
+| `witherKiller interval <ticks>` | Set the placement interval in ticks (default: 1) |
+| `witherKiller spawnWait <ticks>` | Set the wait time after placing soul sand before checking for withers (default: 20) |
+| `witherKiller fightTimeout <ticks>` | Set the timeout before force-starting the fight (default: 200) |
+| `witherKiller protect add <blockName>` | Add a block to the protected list (won't be cleaned up) |
+| `witherKiller protect remove <blockName>` | Remove a block from the protected list |
+| `witherKiller protect list` | List all protected blocks |
+| `witherKiller protect reset` | Reset protected blocks to defaults |
 
-Plugin metadata like its unique id, version, and supported MC versions is defined in the `@Plugin` annotation.
+**Alias:** `wk`
 
-[See example](https://github.com/rfresh2/ZenithProxyExamplePlugin/blob/1.21.4/src/main/java/org/example/ExamplePlugin.java)
+## Configuration
 
-### Plugin API
+All settings are saved in `config/kill-wither.json`. Example:
 
-The `ZenithProxyPlugin` interface requires you to implement an `onLoad` method.
+```json
+{
+  "witherKiller": {
+    "enabled": false,
+    "targetConfigured": false,
+    "targetX": 0.0,
+    "targetY": 64.0,
+    "targetZ": 0.0,
+    "witherDetectionRange": 24,
+    "requiredWithersBeforeFight": 6,
+    "placementIntervalTicks": 1,
+    "witherSpawnWaitTicks": 20,
+    "fightStartTimeoutTicks": 200,
+    "protectedBlocks": [
+      "REDSTONE_TORCH",
+      "NOTE_BLOCK",
+      "PISTON",
+      "STICKY_PISTON",
+      "PISTON_HEAD",
+      "MOVING_PISTON",
+      "OBSERVER",
+      "DISPENSER",
+      "DROPPER",
+      "REDSTONE_WIRE",
+      "REDSTONE_BLOCK",
+      "REPEATER",
+      "COMPARATOR"
+    ]
+  }
+}
+```
 
-This method provides a `PluginAPI` object that you can use to register modules, commands, and config files.
+## Usage
 
-`Module` and `Command` classes are implemented the same as in the ZenithProxy source code.
+1. Stand at the position where you want the bot to place withers
+2. Look at the target block and run `witherKiller captureTarget`
+3. Enable the module with `witherKiller on`
+4. The bot will automatically place soul sand, wait for withers to spawn, and kill them
 
-I recommend looking at existing modules, commands, and plugins for examples.
+## Building from Source
 
-* [Module](https://github.com/rfresh2/ZenithProxy/tree/1.21.4/src/main/java/com/zenith/module)
-* [Command](https://github.com/rfresh2/ZenithProxy/tree/1.21.4/src/main/java/com/zenith/command)
-* Plugins
-  * [ZenithProxyVillagerTrader](https://github.com/rfresh2/ZenithProxyVillagerTrader)
-  * [ZenithProxyWebAPI](https://github.com/rfresh2/ZenithProxyWebAPI)
-  * [ZenithProxyChatControl](https://github.com/rfresh2/ZenithProxyChatControl)
-  * More in [my discord server](https://discord.com/channels/1127460556710883391/1369081651564515358)
+```bash
+git clone https://github.com/AeiouJx/ZenithProxyWitherKiller.git
+cd ZenithProxyWitherKiller
+./gradlew build
+```
 
-### JavaDocs
+The built jar will be in `build/libs/`.
 
-https://maven.2b2t.vc/javadoc/releases/com/zenith/ZenithProxy/1.21.4-SNAPSHOT
+## License
 
-### Building Plugins
-
-Execute the Gradle `build` task: `./gradlew build` - or double-click the task in Intellij
-
-The built plugin jar will be in the `build/libs` directory.
-
-### Testing Plugins
-
-Execute the `run` task: `./gradlew run` - or double-click the task in Intellij
-
-This will run ZenithProxy with your plugin loaded in the `run` directory.
-
-### New Plugin Checklist
-
-1. Edit `gradle.properties`:
-   - `plugin_name` - Name of your plugin, shown to users and in the plugin jar file name (e.g. `ExamplePlugin`)
-   - `plugin_id` - Unique identifier for your plugin (e.g. `example-plugin`)
-     - Must start with a lowercase letter and contain only lowercase letters, numbers, or dashes (`-`)
-   - `mc` - MC version of ZenithProxy your plugin is compiled for (e.g. `1.21.4`)
-   - `maven_group` - Java package for your project (e.g. `com.github.rfresh2`)
-1. Move files to your new corresponding package / maven group:
-   - Example: `src/main/java/org/example` -> `src/main/java/com/github/rfresh2`
-   - First create the new package in `src/main/java`. Then click and drag original subpackages/classes to your new one
-   - Do this with Intellij to avoid manually editing all the source files
-   - You must also create and move package folders for the `src/main/templates` folder
-1. Edit `ExamplePlugin.java`, or remove it and create a new main class
-   - Make sure to update the `@Plugin` annotation
+[CC0 1.0 Universal](LICENSE)
