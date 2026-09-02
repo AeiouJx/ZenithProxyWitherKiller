@@ -79,12 +79,46 @@ All settings are saved in `config/kill-wither.json`. Example:
 }
 ```
 
+## Wither Killing Machine (Schematic)
+
+A compatible redstone machine schematic is included in the [Releases](https://github.com/AeiouJx/ZenithProxyWitherKiller/releases) page.
+
+**File:** `WitherKillerMachine.litematic`
+
+This is a wither killing machine with the following features:
+- **Auto Soul Sand Restocking** - Automatically replenishes soul sand supply from a storage system
+- **Sorting System** - Sorts and collects drops (nether star, wither skeleton skulls, coal, etc.)
+- **Compact Design** - Can be built in a standard survival world
+
+### How to Use
+
+1. Download `WitherKillerMachine.litematic` from the release
+2. Use [Litematica](https://www.curseforge.com/minecraft/mc-mods/litematica) mod to paste the schematic in your world
+3. Build the machine according to the schematic
+4. Stand at the bot's position (where soul sand is placed) and run `witherKiller captureTarget` targeting the placement area
+5. Enable the module with `witherKiller on`
+
+### Machine Layout
+
+```
+                [Dispenser]
+                    |
+[Soul Sand Storage] -> [Feeding System] -> [Placement Area]
+                    |
+              [Drop Collection]
+                    |
+              [Sorting System]
+```
+
+The bot stands at the placement area and places soul sand toward the dispenser. The redstone machine handles restocking and collection automatically.
+
 ## Usage
 
-1. Stand at the position where you want the bot to place withers
-2. Look at the target block and run `witherKiller captureTarget`
-3. Enable the module with `witherKiller on`
-4. The bot will automatically place soul sand, wait for withers to spawn, and kill them
+1. Build the wither killing machine (or set up your own)
+2. Stand at the position where you want the bot to place withers
+3. Look at the target block and run `witherKiller captureTarget`
+4. Enable the module with `witherKiller on`
+5. The bot will automatically place soul sand, wait for withers to spawn, and kill them
 
 ## Building from Source
 
