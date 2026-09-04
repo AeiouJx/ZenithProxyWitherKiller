@@ -26,7 +26,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.MoveToHotbarActio
 import com.zenith.util.timer.Timer;
 import com.zenith.util.timer.Timers;
 import org.cloudburstmc.math.vector.Vector2f;
-import com.aeioujx.witherkiller.WitherKillerConfig;
 import com.aeioujx.witherkiller.WitherKillerPlugin;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
