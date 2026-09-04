@@ -26,6 +26,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.MoveToHotbarActio
 import com.zenith.util.timer.Timer;
 import com.zenith.util.timer.Timers;
 import org.cloudburstmc.math.vector.Vector2f;
+import com.aeioujx.witherkiller.WitherKillerConfig;
 import com.aeioujx.witherkiller.WitherKillerPlugin;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
@@ -69,9 +70,13 @@ public class WitherKillerModule extends AbstractInventoryModule {
         super(HandRestriction.MAIN_HAND, 0);
     }
 
+    private WitherKillerConfig.WitherConfig config() {
+        return config();
+    }
+
     @Override
     public boolean enabledSetting() {
-        return WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.enabled;
+        return config().enabled;
     }
 
     @Override
@@ -94,9 +99,9 @@ public class WitherKillerModule extends AbstractInventoryModule {
 
     @Override
     public void onEnable() {
-        if (!WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.targetConfigured) {
+        if (!config().targetConfigured) {
             warn("WitherKiller requires a captured target before enabling");
-            WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.enabled = false;
+            config().enabled = false;
             return;
         }
         resetCycle();
@@ -126,10 +131,10 @@ public class WitherKillerModule extends AbstractInventoryModule {
         if (!raycast.hit() || raycast.intersection() == null) {
             return false;
         }
-        WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.targetX = raycast.intersection().x();
-        WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.targetY = raycast.intersection().y();
-        WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.targetZ = raycast.intersection().z();
-        WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.targetConfigured = true;
+        config().targetX = raycast.intersection().x();
+        config().targetY = raycast.intersection().y();
+        config().targetZ = raycast.intersection().z();
+        config().targetConfigured = true;
         return true;
     }
 
@@ -219,7 +224,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
             return;
         }
         expectedWithers = Math.max(expectedWithers, witherCount);
-        noProgressTicksRemaining = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.fightStartTimeoutTicks;
+        noProgressTicksRemaining = config().fightStartTimeoutTicks;
         batchStartSoulSandCount = countSoulSandInInventory();
         if (hasCleanupBlockers()) {
             info("Summon batch timed out with blockers in front, starting cleanup");
@@ -239,7 +244,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
             enableKillAura();
             return;
         }
-        if (witherCount >= WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.requiredWithersBeforeFight) {
+        if (witherCount >= config().requiredWithersBeforeFight) {
             setPhase(Phase.FIGHTING, "required wither count reached");
             enableKillAura();
             return;
@@ -249,7 +254,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
             return;
         }
         if (witherCount > 0) {
-            info("Wither count stalled at {}/{}, starting kill phase", witherCount, WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.requiredWithersBeforeFight);
+            info("Wither count stalled at {}/{}, starting kill phase", witherCount, config().requiredWithersBeforeFight);
             setPhase(Phase.FIGHTING, "fight timeout reached");
             enableKillAura();
             return;
@@ -282,23 +287,23 @@ public class WitherKillerModule extends AbstractInventoryModule {
         int witherCount = getNearbyWitherCount();
         if (witherCount > expectedWithers) {
             expectedWithers = witherCount;
-            noProgressTicksRemaining = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.fightStartTimeoutTicks;
-            if (witherCount >= WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.requiredWithersBeforeFight) {
+            noProgressTicksRemaining = config().fightStartTimeoutTicks;
+            if (witherCount >= config().requiredWithersBeforeFight) {
                 setPhase(Phase.FIGHTING, "required wither count reached");
                 enableKillAura();
             } else {
                 setPhase(Phase.WAITING_FOR_BATCH, "new wither detected");
-                waitTicksRemaining = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.witherSpawnWaitTicks;
+                waitTicksRemaining = config().witherSpawnWaitTicks;
             }
             return;
         }
-        if (witherCount >= WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.requiredWithersBeforeFight) {
+        if (witherCount >= config().requiredWithersBeforeFight) {
             setPhase(Phase.FIGHTING, "required wither count reached");
             enableKillAura();
             return;
         }
         if (witherCount > 0 && noProgressTicksRemaining <= 0) {
-            info("Wither count stalled at {}/{}, starting kill phase", witherCount, WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.requiredWithersBeforeFight);
+            info("Wither count stalled at {}/{}, starting kill phase", witherCount, config().requiredWithersBeforeFight);
             setPhase(Phase.FIGHTING, "fight timeout reached");
             enableKillAura();
             return;
@@ -306,7 +311,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
         if (witherCount > 0) {
             noProgressTicksRemaining--;
         } else {
-            noProgressTicksRemaining = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.fightStartTimeoutTicks;
+            noProgressTicksRemaining = config().fightStartTimeoutTicks;
         }
         if (batchStartSoulSandCount < 0) {
             batchStartSoulSandCount = countSoulSandInInventory();
@@ -327,7 +332,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
         if (soulSandConsumed >= SOUL_SAND_PER_WITHER) {
             placingStallTicks = 0;
             setPhase(Phase.WAITING_FOR_BATCH, "4 soul sand consumed");
-            waitTicksRemaining = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.witherSpawnWaitTicks;
+            waitTicksRemaining = config().witherSpawnWaitTicks;
             return;
         }
         var inventoryActionResult = doInventoryActionsV2();
@@ -341,7 +346,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
             }
             return;
         }
-        if (!placementTimer.tick(WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.placementIntervalTicks)) {
+        if (!placementTimer.tick(config().placementIntervalTicks)) {
             return;
         }
         submitPlacementClick();
@@ -373,12 +378,12 @@ public class WitherKillerModule extends AbstractInventoryModule {
     }
 
     private Vector2f getPlacementRotation() {
-        var config = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller;
+        var config = config();
         return RotationHelper.rotationTo(config.targetX, config.targetY, config.targetZ);
     }
 
     private int getNearbyWitherCount() {
-        double maxDistanceSq = Math.pow(WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.witherDetectionRange, 2);
+        double maxDistanceSq = Math.pow(config().witherDetectionRange, 2);
         int count = 0;
         for (var entity : CACHE.getEntityCache().getEntities().values()) {
             if (!(entity instanceof EntityLiving living)) continue;
@@ -392,7 +397,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
     }
 
     private boolean hasActiveHostileWither() {
-        double maxDistanceSq = Math.pow(WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.witherDetectionRange, 2);
+        double maxDistanceSq = Math.pow(config().witherDetectionRange, 2);
         for (var entity : CACHE.getEntityCache().getEntities().values()) {
             if (!(entity instanceof EntityLiving living)) continue;
             if (living.getEntityType() != EntityType.WITHER) continue;
@@ -430,7 +435,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
     }
 
     private CleanupTarget nextCleanupTarget() {
-        var config = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller;
+        var config = config();
         double dx = config.targetX - CACHE.getPlayerCache().getX();
         double dz = config.targetZ - CACHE.getPlayerCache().getZ();
         int forwardX = Math.abs(dx) >= Math.abs(dz) ? (dx >= 0 ? 1 : -1) : 0;
@@ -469,7 +474,7 @@ public class WitherKillerModule extends AbstractInventoryModule {
     }
 
     private Set<com.zenith.mc.block.Block> getConfiguredProtectedBlocks() {
-        var configuredNames = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.protectedBlocks;
+        var configuredNames = config().protectedBlocks;
         Set<com.zenith.mc.block.Block> blocks = new HashSet<>();
         if (configuredNames == null) {
             return blocks;
@@ -552,14 +557,14 @@ public class WitherKillerModule extends AbstractInventoryModule {
     }
 
     private int getPlacementStallTimeoutTicks() {
-        return Math.max(WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.witherSpawnWaitTicks, 20);
+        return Math.max(config().witherSpawnWaitTicks, 20);
     }
 
     private void resetCycle() {
         setPhase(Phase.PLACING, "cycle reset");
         waitTicksRemaining = 0;
         expectedWithers = 0;
-        noProgressTicksRemaining = WitherKillerPlugin.PLUGIN_CONFIG.witherKiller.fightStartTimeoutTicks;
+        noProgressTicksRemaining = config().fightStartTimeoutTicks;
         batchStartSoulSandCount = countSoulSandInInventory();
         placingStallTicks = 0;
         cleanupTarget = null;
